@@ -1,7 +1,7 @@
 {
   "name": "@nousantx/tenoxcss",
   "version": "0.1.0",
-  "description": "Writing tenoxui engine... again...",
+  "description": "Write CSS inside class",
   "author": "NOuSantx <nousantx@gmail.com>",
   "license": "MIT",
   "homepage": "https://github.com/nousantx/tenoxcss-static-new#readme",
@@ -30,13 +30,17 @@
     "start": "echo 'hello world'"
   },
   "dependencies": {
-    "@tenoxui/types": "^0.1.2"
+    "@tenoxui/types": "^0.1.2",
+    "cheerio": "^1.0.0",
+    "chokidar": "^4.0.3",
+    "glob": "^11.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.2",
     "@rollup/plugin-node-resolve": "^16.0.0",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.2",
+    "@tenoxui/property": "^1.4.5",
     "@types/node": "^22.10.2",
     "rollup": "^4.29.1",
     "tslib": "^2.8.1",
