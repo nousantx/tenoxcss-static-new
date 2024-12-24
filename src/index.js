@@ -1,4 +1,4 @@
-const config = {
+const defaultConfig = {
   property: {
     bg: 'background',
     text: 'color',
@@ -32,6 +32,7 @@ class TenoxUI {
     this.aliases = aliases
     this.breakpoints = breakpoints
     this.styleMap = new Map()
+    console.log(this.styleMap)
   }
 
   toCamelCase(str) {
@@ -107,9 +108,8 @@ class TenoxUI {
     return value + unit
   }
 
-  processShorthand(type, value, unit, prefix, secondValue, secondUnit) {
+  processShorthand(type, value, unit = '', prefix, secondValue, secondUnit) {
     const properties = this.property[type]
-    const classes = this.classes
     const finalValue = this.processValue(type, value, unit)
 
     if (type.startsWith('[') && type.endsWith(']')) {
@@ -118,70 +118,115 @@ class TenoxUI {
         .split(',')
         .map(item => item.trim())
 
-      const properties = items
+      const cssRules = items
         .map(item => {
-          const prop = this.property[item]
-
-          if (Array.isArray(prop)) {
-            return prop.map(p => `${this.toKebabCase(String(p))}: ${finalValue}`).join('; ')
-          }
-
-          const property = prop || item
-
-          // console.log(property)
-
-          const finalProperty = property.startsWith('--')
-            ? property // if css variable, don't do anything
-            : this.toKebabCase(String(property)) // process regular properties
-
+          const prop = this.property[item] || item
+          const finalProperty = prop.startsWith('--') ? prop : this.toKebabCase(String(prop))
           return `${finalProperty}: ${finalValue}`
         })
         .join('; ')
 
-      return [`[${type.slice(1, -1)}]-${value}`, `${properties};`, null, prefix]
-    } else if (properties) {
-      console.log(type, value, unit)
+      // console.log(cssRules)
+
+      return {
+        className: `${this.escapeCSSSelector(`[${type.slice(1, -1)}]-${value}${unit}`)}`,
+        cssRules,
+        value: null,
+        prefix
+      }
+    }
+
+    if (properties) {
       if (typeof properties === 'object' && properties.value !== undefined && properties.property) {
         const property = properties.property
         const template = properties.value
         const processedValue = template
-          ? template.replace(/\{0}/g, finalValue).replace(/\{1}/g, secondValue)
-          : value
+          ? template.replace(/\{0}/g, finalValue).replace(/\{1}/g, secondValue || '')
+          : finalValue
 
-        return Array.isArray(property)
-          ? property.map(prop => [type, prop, processedValue, prefix])
-          : [type, property, processedValue, prefix]
-      } else {
-        console.log(type)
+        if (Array.isArray(property)) {
+          // Return combined properties in a single object
+          return {
+            className: `${type}-${value}${unit}`,
+            cssRules: property,
+            value: processedValue,
+            prefix
+          }
+        }
+
+        return {
+          className: `${type}-${value}${unit}`,
+          cssRules: this.toKebabCase(properties),
+          value: processedValue,
+          prefix
+        }
       }
+
+      return {
+        className: `${type}-${value}${unit}`,
+        cssRules: this.toKebabCase(String(properties)),
+        value: finalValue,
+        prefix
+      }
+    }
+
+    return null
+  }
+
+  addStyle(className, cssRules, value, prefix) {
+    const key = prefix ? `${prefix}\\:${className}:${prefix}` : className
+    if (!this.styleMap.has(key)) {
+      this.styleMap.set(key, new Set())
+    }
+
+    if (Array.isArray(cssRules)) {
+      const combinedRule = cssRules
+        .map(prop => (value ? `${this.toKebabCase(prop)}: ${value}` : this.toKebabCase(prop)))
+        .join('; ')
+      this.styleMap.get(key).add(combinedRule)
+    } else {
+      // Handle single property
+      this.styleMap.get(key).add(value ? `${cssRules}: ${value}` : cssRules)
     }
   }
 
   processClassNames(classNames) {
     classNames.split(/\s+/).forEach(className => {
-      const parsedClassName = this.parseClassName(className)
+      if (!className) return
 
-      const [prefix, type, value, unit, secValue, secUnit] = parsedClassName
+      const parsed = this.parseClassName(className)
+      if (!parsed) return
 
-      // const finalValue = this.processValue(type, value, unit)
+      const [prefix, type, value, unit, secValue, secUnit] = parsed
+      const result = this.processShorthand(type, value, unit, prefix, secValue, secUnit)
 
-      const rule = this.processShorthand(type, value, unit)
-      console.log(rule)
-      
-      return this.generateRule(type, rule, value, prefix)
+      if (result) {
+        const { className, cssRules, value, prefix: rulePrefix } = result
+        console.log(value, cssRules, rulePrefix)
+        this.addStyle(className, cssRules, value, rulePrefix)
+      }
     })
   }
+  generateStylesheet() {
+    let stylesheet = ''
 
-  generateRule(className, cssRule, value, prefix) {
-    const rules = value ? `${cssRule}: ${value}` : cssRule
+    // Convert styleMap to CSS rules
+    this.styleMap.forEach((rules, className) => {
+      const styles = Array.from(rules).join('; ')
 
-    return `.${className}${prefix ? `:${prefix}` : ''} { ${rules} }`
+      stylesheet += `.${className} {\n  ${styles};\n}\n`
+    })
+
+    return stylesheet
   }
 }
 
-const tenoxui = new TenoxUI(config)
+// const tenoxui2 = new TenoxUI(defaultConfig)
 
-console.log(tenoxui.processClassNames('my-bg-[255_0_0]'))
+// Test it with some classes
+// tenoxui.processClassNames('hover:bg-primary text-[#fff] hover:my-bg-[255_0_0]')
+// console.log(tenoxui.generateStylesheet())
 
-// const stylesheet = tenoxui.processShorthand('[background,--red]', 'red', '', '')
-// console.log(stylesheet)
+// tenoxui2.processClassNames('hover:bg-primary text-[#fff] hover:my-bg-[255_0_0] bg-red')
+
+// console.log('real stylesheet', tenoxui2.generateStylesheet())
