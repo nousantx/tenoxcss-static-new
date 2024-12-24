@@ -1,11 +1,28 @@
 export class TenoxUI {
-  constructor({ property = {}, values = {}, classes = {}, aliases = {}, breakpoints = [] } = {}) {
+  constructor({
+    property = {},
+    values = {},
+    classes = {},
+    aliases = {},
+    breakpoints = [],
+    reserveClass = []
+  } = {}) {
     this.property = property
     this.values = values
     this.classes = classes
     this.aliases = aliases
     this.breakpoints = breakpoints
+    this.reserveClass = reserveClass
     this.styleMap = new Map()
+    if (this.reserveClass.length > 0) {
+      this.processReservedClasses()
+    }
+  }
+
+  processReservedClasses() {
+    this.reserveClass.forEach(className => {
+      this.processClassNames(className)
+    })
   }
 
   toCamelCase(str) {
@@ -224,18 +241,14 @@ export class TenoxUI {
   }
 
   generateMediaQuery(breakpoint, className, rules) {
-    const { name, min, max } = breakpoint
-    let mediaQuery = '@media '
+    const { name } = breakpoint
+    const mediaKey = `@media-${name}`
+    const ruleSet = `.${name}\\:${className} { ${rules} }`
 
-    if (min !== undefined && max !== undefined) {
-      mediaQuery += `(min-width: ${min}px) and (max-width: ${max}px)`
-    } else if (min !== undefined) {
-      mediaQuery += `(min-width: ${min}px)`
-    } else if (max !== undefined) {
-      mediaQuery += `(max-width: ${max}px)`
+    return {
+      mediaKey,
+      ruleSet
     }
-
-    return `${mediaQuery} {\n  .${className} {\n    ${rules};\n  }\n}`
   }
 
   processClassNames(classNames) {
@@ -248,6 +261,7 @@ export class TenoxUI {
         this.addStyle(aliasClassName, cssRules, null, undefined)
         return
       }
+
       const [rprefix, rtype] = className.split(':')
       const getType = rtype || rprefix
       const getPrefix = rtype ? rprefix : undefined
@@ -260,8 +274,8 @@ export class TenoxUI {
         const { className, cssRules, prefix } = shouldClasses
 
         if (breakpoint) {
-          const mediaQueryRule = this.generateMediaQuery(breakpoint, className, cssRules)
-          this.addStyle(`@media-${breakpoint.name}-${className}`, mediaQueryRule, null, null)
+          const { mediaKey, ruleSet } = this.generateMediaQuery(breakpoint, className, cssRules)
+          this.addStyle(mediaKey, ruleSet, null, null)
         } else {
           this.addStyle(className, cssRules, null, prefix)
         }
@@ -281,8 +295,9 @@ export class TenoxUI {
           const rules = Array.isArray(cssRules)
             ? cssRules.map(rule => `${this.toKebabCase(rule)}: ${ruleValue}`).join('; ')
             : `${cssRules}: ${ruleValue}`
-          const mediaQueryRule = this.generateMediaQuery(breakpoint, className, rules)
-          this.addStyle(`@media-${breakpoint.name}-${className}`, mediaQueryRule, null, null)
+
+          const { mediaKey, ruleSet } = this.generateMediaQuery(breakpoint, className, rules)
+          this.addStyle(mediaKey, ruleSet, null, null)
         } else {
           this.addStyle(className, cssRules, ruleValue, rulePrefix)
         }
@@ -291,19 +306,46 @@ export class TenoxUI {
   }
 
   generateStylesheet() {
+    this.processReservedClasses()
     let stylesheet = ''
-    let mediaQueries = ''
+    const mediaQueries = new Map()
 
     this.styleMap.forEach((rules, className) => {
       if (className.startsWith('@media-')) {
-        // Collect media queries
-        mediaQueries += Array.from(rules).join('\n') + '\n'
+        const breakpointName = className.split('-')[1]
+        const breakpoint = this.breakpoints.find(bp => bp.name === breakpointName)
+
+        if (breakpoint) {
+          let mediaQuery = ''
+          if (breakpoint.min !== undefined && breakpoint.max !== undefined) {
+            mediaQuery = `(min-width: ${breakpoint.min}px) and (max-width: ${breakpoint.max}px)`
+          } else if (breakpoint.min !== undefined) {
+            mediaQuery = `(min-width: ${breakpoint.min}px)`
+          } else if (breakpoint.max !== undefined) {
+            mediaQuery = `(max-width: ${breakpoint.max}px)`
+          }
+
+          if (!mediaQueries.has(mediaQuery)) {
+            mediaQueries.set(mediaQuery, new Set())
+          }
+          rules.forEach(rule => {
+            mediaQueries.get(mediaQuery).add(rule)
+          })
+        }
       } else {
         const styles = Array.from(rules).join('; ')
         stylesheet += `.${className} {\n  ${styles};\n}\n`
       }
     })
 
-    return stylesheet + mediaQueries
+    mediaQueries.forEach((rules, query) => {
+      stylesheet += `@media ${query} {\n`
+      rules.forEach(rule => {
+        stylesheet += `  ${rule}\n`
+      })
+      stylesheet += '}\n'
+    })
+
+    return stylesheet
   }
 }
