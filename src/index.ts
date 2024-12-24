@@ -1,5 +1,7 @@
+import type { Property, Values, Classes, Aliases, Breakpoint } from '@tenoxui/types'
+
 class TenoxUI {
-  constructor({ property = {}, values = {}, classes = {}, aliases = {}, breakpoints = [] } = {}) {
+  constructor({ property = {}, values = {}, classes = {}, aliases = {}, breakpoints = [] } = {}): CoreConfig {
     this.property = property
     this.values = values
     this.classes = classes
@@ -27,7 +29,7 @@ class TenoxUI {
   }
 
   processClassNames(classNames) {
-    classNames.split(/\s+/).forEach((className) => {
+    classNames.split(/\s+/).forEach(className => {
       console.log(this.parseClassName(className))
     })
   }
