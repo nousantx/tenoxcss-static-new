@@ -2,7 +2,8 @@ import { property as TxProps } from '@tenoxui/property'
 
 export default {
   property: {
-    ...TxProps,
+    bg: 'background',
+    text: 'color',
     'my-bg': {
       property: ['background', 'color'],
       value: 'rgb({0})'
@@ -11,6 +12,7 @@ export default {
   values: {
     primary: '#ccf654'
   },
+  reserveClass: ['[background,--new-cls]-[rgb(color({primary}))]', 'text-red'],
   classes: {
     '--my-ctr': {
       center: '1s'
