@@ -6,9 +6,9 @@ import commonjs from '@rollup/plugin-commonjs'
 import terser from '@rollup/plugin-terser'
 
 const packageJson = JSON.parse(fs.readFileSync(path.resolve('package.json'), 'utf-8'))
-const name = '__nsx_styler'
+const name = '__tenoxui_static'
 const banner = `/*!
- * ${packageJson.name.slice(10)} v${packageJson.version} | ${packageJson.license} License
+ * ${packageJson.name} v${packageJson.version} | ${packageJson.license} License
  * Copyright (c) 2024-present NOuSantx
  */`
 const sourcemap = true //# PROD_TRUE
