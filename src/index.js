@@ -11,6 +11,12 @@ const defaultConfig = {
     primary: '#ccf654'
   },
   classes: {
+    '--my-ctr': {
+      center: '1s'
+    },
+    webkitAnimation: {
+      center: 'var(--my-ctr)'
+    },
     display: {
       center: 'flex',
       block: 'block'
@@ -32,7 +38,8 @@ class TenoxUI {
     this.aliases = aliases
     this.breakpoints = breakpoints
     this.styleMap = new Map()
-    console.log(this.styleMap)
+
+    
   }
 
   toCamelCase(str) {
@@ -49,7 +56,7 @@ class TenoxUI {
         )
       }
     }
-    // Handle regular camelCase to kebab-case
+
     return str.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`)
   }
 
@@ -108,6 +115,12 @@ class TenoxUI {
     return value + unit
   }
 
+  getParentClass(className) {
+    return Object.keys(this.classes).filter(cssProperty =>
+      Object.prototype.hasOwnProperty.call(this.classes[cssProperty], className)
+    )
+  }
+
   processShorthand(type, value, unit = '', prefix, secondValue, secondUnit) {
     const properties = this.property[type]
     const finalValue = this.processValue(type, value, unit)
@@ -125,9 +138,7 @@ class TenoxUI {
           return `${finalProperty}: ${finalValue}`
         })
         .join('; ')
-
-      // console.log(cssRules)
-
+      
       return {
         className: `${this.escapeCSSSelector(`[${type.slice(1, -1)}]-${value}${unit}`)}`,
         cssRules,
@@ -172,7 +183,31 @@ class TenoxUI {
 
     return null
   }
+  processCustomClass(prefix, className) {
+    // Get all properties that have this className defined
+    const properties = Object.entries(this.classes)
+      .filter(([, classObj]) => classObj.hasOwnProperty(className))
+      .reduce((acc, [propKey, classObj]) => {
+        acc[this.toKebabCase(propKey)] = classObj[className]
+        return acc
+      }, {})
 
+    if (Object.keys(properties).length > 0) {
+      // Create CSS rules by joining all property-value pairs
+      const rules = Object.entries(properties)
+        .map(([prop, value]) => `${prop}: ${value}`)
+        .join('; ')
+
+      return {
+        className: this.escapeCSSSelector(className),
+        cssRules: rules,
+        value: null,
+        prefix
+      }
+    }
+
+    return null // Return null if no matching properties found
+  }
   addStyle(className, cssRules, value, prefix) {
     const key = prefix ? `${prefix}\\:${className}:${prefix}` : className
     if (!this.styleMap.has(key)) {
@@ -194,6 +229,19 @@ class TenoxUI {
     classNames.split(/\s+/).forEach(className => {
       if (!className) return
 
+      const [rprefix, rtype] = className.split(':')
+      const getType = rtype || rprefix
+      const getPrefix = rtype ? rprefix : undefined
+
+      const shouldClasses = this.processCustomClass(getPrefix, getType)
+
+      if (shouldClasses) {
+        const { className, cssRules, prefix } = shouldClasses
+
+        this.addStyle(className, cssRules, null, prefix)
+        return
+      }
+
       const parsed = this.parseClassName(className)
       if (!parsed) return
 
@@ -202,7 +250,7 @@ class TenoxUI {
 
       if (result) {
         const { className, cssRules, value, prefix: rulePrefix } = result
-        console.log(value, cssRules, rulePrefix)
+
         this.addStyle(className, cssRules, value, rulePrefix)
       }
     })
@@ -221,12 +269,14 @@ class TenoxUI {
   }
 }
 
-// const tenoxui2 = new TenoxUI(defaultConfig)
+const tenoxui2 = new TenoxUI(defaultConfig)
 
 // Test it with some classes
 // tenoxui.processClassNames('hover:bg-primary text-[#fff] hover:my-bg-[255_0_0]')
 // console.log(tenoxui.generateStylesheet())
 
-// tenoxui2.processClassNames('hover:bg-primary text-[#fff] hover:my-bg-[255_0_0] bg-red')
+tenoxui2.processClassNames(
+  'hover:bg-primary [color]-[{primary}] hover:my-bg-[255_0_0] bg-red center'
+)
 
-// console.log('real stylesheet', tenoxui2.generateStylesheet())
+console.log('real stylesheet', tenoxui2.generateStylesheet())
