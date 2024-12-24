@@ -2,8 +2,7 @@ import { property as TxProps } from '@tenoxui/property'
 
 export default {
   property: {
-    bg: 'background',
-    text: 'color',
+    ...TxProps,
     'my-bg': {
       property: ['background', 'color'],
       value: 'rgb({0})'
