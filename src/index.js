@@ -38,12 +38,10 @@ class TenoxUI {
     this.aliases = aliases
     this.breakpoints = breakpoints
     this.styleMap = new Map()
-
-    
   }
 
   toCamelCase(str) {
-    return str.replace(/-([a-z])/g, g => g[1].toUpperCase())
+    return str.replace(/-([a-z])/g, (g) => g[1].toUpperCase())
   }
 
   toKebabCase(str) {
@@ -52,12 +50,12 @@ class TenoxUI {
       if (str.toLowerCase().startsWith(prefix)) {
         return (
           `-${prefix}` +
-          str.slice(prefix.length).replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`)
+          str.slice(prefix.length).replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)
         )
       }
     }
 
-    return str.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`)
+    return str.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)
   }
 
   escapeCSSSelector(str) {
@@ -88,7 +86,7 @@ class TenoxUI {
     const valueRegistry = this.values[value]
     // let resolvedValue = valueRegistry || value
 
-    const replaceWithValueRegistry = text => {
+    const replaceWithValueRegistry = (text) => {
       return text.replace(/\{([^}]+)\}/g, (match, key) => {
         return this.values[key].toString() || match
       })
@@ -116,7 +114,7 @@ class TenoxUI {
   }
 
   getParentClass(className) {
-    return Object.keys(this.classes).filter(cssProperty =>
+    return Object.keys(this.classes).filter((cssProperty) =>
       Object.prototype.hasOwnProperty.call(this.classes[cssProperty], className)
     )
   }
@@ -129,16 +127,16 @@ class TenoxUI {
       const items = type
         .slice(1, -1)
         .split(',')
-        .map(item => item.trim())
+        .map((item) => item.trim())
 
       const cssRules = items
-        .map(item => {
+        .map((item) => {
           const prop = this.property[item] || item
           const finalProperty = prop.startsWith('--') ? prop : this.toKebabCase(String(prop))
           return `${finalProperty}: ${finalValue}`
         })
         .join('; ')
-      
+
       return {
         className: `${this.escapeCSSSelector(`[${type.slice(1, -1)}]-${value}${unit}`)}`,
         cssRules,
@@ -156,7 +154,6 @@ class TenoxUI {
           : finalValue
 
         if (Array.isArray(property)) {
-          // Return combined properties in a single object
           return {
             className: `${type}-${value}${unit}`,
             cssRules: property,
@@ -193,7 +190,6 @@ class TenoxUI {
       }, {})
 
     if (Object.keys(properties).length > 0) {
-      // Create CSS rules by joining all property-value pairs
       const rules = Object.entries(properties)
         .map(([prop, value]) => `${prop}: ${value}`)
         .join('; ')
@@ -206,7 +202,7 @@ class TenoxUI {
       }
     }
 
-    return null // Return null if no matching properties found
+    return null
   }
   addStyle(className, cssRules, value, prefix) {
     const key = prefix ? `${prefix}\\:${className}:${prefix}` : className
@@ -216,17 +212,16 @@ class TenoxUI {
 
     if (Array.isArray(cssRules)) {
       const combinedRule = cssRules
-        .map(prop => (value ? `${this.toKebabCase(prop)}: ${value}` : this.toKebabCase(prop)))
+        .map((prop) => (value ? `${this.toKebabCase(prop)}: ${value}` : this.toKebabCase(prop)))
         .join('; ')
       this.styleMap.get(key).add(combinedRule)
     } else {
-      // Handle single property
       this.styleMap.get(key).add(value ? `${cssRules}: ${value}` : cssRules)
     }
   }
 
   processClassNames(classNames) {
-    classNames.split(/\s+/).forEach(className => {
+    classNames.split(/\s+/).forEach((className) => {
       if (!className) return
 
       const [rprefix, rtype] = className.split(':')
@@ -258,7 +253,6 @@ class TenoxUI {
   generateStylesheet() {
     let stylesheet = ''
 
-    // Convert styleMap to CSS rules
     this.styleMap.forEach((rules, className) => {
       const styles = Array.from(rules).join('; ')
 
@@ -271,7 +265,6 @@ class TenoxUI {
 
 const tenoxui2 = new TenoxUI(defaultConfig)
 
-// Test it with some classes
 // tenoxui.processClassNames('hover:bg-primary text-[#fff] hover:my-bg-[255_0_0]')
 // console.log(tenoxui.generateStylesheet())
 

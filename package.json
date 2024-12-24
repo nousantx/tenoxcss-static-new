@@ -5,7 +5,9 @@
   "author": "NOuSantx <nousantx@gmail.com>",
   "license": "MIT",
   "homepage": "https://github.com/nousantx/tenoxcss-static-new#readme",
-  "keywords": ["keywords"],
+  "keywords": [
+    "keywords"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nousantx/tenoxcss-static-new.git"
@@ -13,7 +15,12 @@
   "bugs": {
     "url": "https://github.com/nousantx/tenoxcss-static-new/issues"
   },
-  "files": ["dist", "package.json", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "package.json",
+    "README.md",
+    "LICENSE"
+  ],
   "type": "module",
   "types": "index.d.ts",
   "main": "index.js",
@@ -22,13 +29,14 @@
   "scripts": {
     "start": "echo 'hello world'"
   },
-  "dependencies": { "@tenoxui/types": "^0.1.2" },
+  "dependencies": {
+    "@tenoxui/types": "^0.1.2"
+  },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.2",
     "@rollup/plugin-node-resolve": "^16.0.0",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.2",
-
     "@types/node": "^22.10.2",
     "rollup": "^4.29.1",
     "tslib": "^2.8.1",
