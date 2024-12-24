@@ -5,46 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Hello World!</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tenoxui/property@1.4.5/dist/default.umd.js"></script>
-    <script src="./src/index.js"></script>
+    <link rel="stylesheet" href="./dist/styles.css" />
   </head>
   <body>
-    <div class="bg-red hover:bg-blue [tr]-300ms [w,h]-200px center md:bg-green">hello</div>
-    <script>
-      const property = TENOXUI_PROPERTY.property
-      const config = {
-        property,
-        values: {
-          red: '#ff0000',
-          primary: '#ccf654'
-        },
-        classes: {
-          display: {
-            center: 'flex'
-          },
-          alignItems: {
-            center: 'center'
-          },
-          justifyContent: {
-            center: 'center'
-          }
-        },
-        breakpoints: {
-          sm: '(max-width: 640px)',
-          md: '(max-width: 768px)',
-          lg: '(max-width: 1024px)'
-        }
-      }
-      const tenoxui = new TenoxUI(config)
-      document.querySelectorAll('*').forEach((element) => {
-        if (element.className) {
-          tenoxui.processClassNames(element.className)
-        }
-      })
-      const styleElem = document.createElement('style')
-      styleElem.textContent = tenoxui.generateStylesheet()
-      console.log(styleElem.textContent)
-      document.head.appendChild(styleElem)
-    </script>
+    <div class="bg-red hover:bg-blue [transition]-300ms [w,h]-200px center md:bg-green">hello</div>
+
+    <div class="bg-blue p-3rem">hello</div>
+
+    <button class="btn">hello</button>
   </body>
 </html>
