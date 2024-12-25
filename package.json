@@ -6,7 +6,8 @@
   "license": "MIT",
   "homepage": "https://github.com/nousantx/tenoxcss-static-new#readme",
   "keywords": [
-    "tenoxui", "css-framework"
+    "tenoxui",
+    "css-framework"
   ],
   "repository": {
     "type": "git",
@@ -27,7 +28,10 @@
   "module": "index.esm.js",
   "style": "index.css",
   "scripts": {
-    "build": "rollup -c"
+    "dev": "rollup -c -w",
+    "build": "rollup -c",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@tenoxui/types": "^0.1.2",
@@ -44,6 +48,7 @@
     "@types/node": "^22.10.2",
     "rollup": "^4.29.1",
     "tslib": "^2.8.1",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
   }
 }
